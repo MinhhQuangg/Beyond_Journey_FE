@@ -1,6 +1,7 @@
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
-import React from "react";
+import React, { useState } from "react";
+import { set } from "react-hook-form";
 
 const sections = ["Overview", "Iternary", "Map", "Calendar", "Review"];
 const offers = [
@@ -16,8 +17,9 @@ const notOffers = [
 ];
 
 const TripDetail = ({ tour }) => {
-  console.log(tour.description);
   const details = tour.description ? tour.description.split("@") : [];
+  const [open, setOpen] = useState(null);
+  const [openAll, setOpenAll] = useState(false);
 
   return (
     <div>
@@ -75,6 +77,42 @@ const TripDetail = ({ tour }) => {
             </p>
           ))}
         </div>
+        <div className="flex justify-between items-center">
+          <span className="text-[25px] font-bold">Plan</span>
+          <span
+            className="text-[18px] text-[#728156] font-bold cursor-pointer"
+            onClick={() => {
+              setOpenAll(!openAll);
+            }}
+          >
+            Open all
+          </span>
+        </div>
+        <ol className="relative border-s border-gray-200 dark:border-gray-700 mt-4">
+          {tour?.locations?.map((location, index) => (
+            <li
+              className="mb-10 ms-4 cursor-pointer"
+              key={index}
+              onClick={() => {
+                setOpen(open === index ? null : index);
+              }}
+            >
+              <div className="mb-5 hover:text-[#0C6478] cursor-pointer">
+                <div className="border-t-2 border-dotted border-gray-300 my-4"></div>
+                <div className="absolute w-3 h-3 bg-gray-200 rounded-full mt-1.5 -start-1.5 border border-white dark:border-gray-900 dark:bg-gray-700"></div>
+                <div className="flex items-center gap-4">
+                  <time className=" ml-2 text-lg font-normal leading-none border-2 border-gray-300 rounded-full px-3 py-1 text-[#0C6478]">
+                    Day {index + 1}
+                  </time>
+                  <h3 className="text-lg font-semibold">{location.title}</h3>
+                </div>
+              </div>
+              {(openAll || open === index) && (
+                <div className="pl-3">{location.description}</div>
+              )}
+            </li>
+          ))}
+        </ol>
       </div>
       <div className="pt-[24px]">
         <span className="text-[28px] font-bold">Map</span>

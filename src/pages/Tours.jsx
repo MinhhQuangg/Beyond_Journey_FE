@@ -28,7 +28,7 @@ const Tours = () => {
   const [selectRating, setSelectRating] = useState([]);
   const [selectDuration, setSelectDuration] = useState("");
   const [descent, setDescent] = useState(false);
-  const handleChange = (newValue) => {
+  const handleChange = (event, newValue) => {
     setRange(newValue);
   };
   const handleRatingChange = (event, rating) => {
