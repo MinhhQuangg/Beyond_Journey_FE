@@ -22,6 +22,7 @@ const Detail = () => {
     };
     fetchTour();
   }, [params]);
+  console.log(tour.imageCover);
 
   return (
     <div className="flex flex-col">
@@ -60,7 +61,7 @@ const Detail = () => {
               <div>
                 <img
                   alt="black"
-                  src={blackBackground}
+                  src={`http://127.0.0.1:3000${tour.imageCover}`}
                   className="h-[500px] w-full"
                 />
               </div>
