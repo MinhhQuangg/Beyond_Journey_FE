@@ -16,6 +16,8 @@ import Tours from "../pages/Tours";
 import Tour from "../pages/Tour";
 
 import { OurTeam } from "../pages/OurTeam";
+import Dashboard from "../pages/Dashboard";
+import { RequireAuth } from "../auth/RequireAuth";
 
 export const Routes = () => {
   return (
@@ -27,6 +29,9 @@ export const Routes = () => {
         <Route path="/forgotpassword" element={<ForgotPassword />} />
         <Route path="/resetpassword/:token" element={<ResetPassword />} />
         <Route path="/AboutUs" element={<AboutUs />} />
+        <Route element={<RequireAuth />}>
+          <Route path="/Dashboard" element={<Dashboard />} />
+        </Route>
         <Route path="/FAQ" element={<FaqPage />} />
         <Route path="/tours" element={<Tours />} />
         <Route path="/tour/:id" element={<Tour />} />

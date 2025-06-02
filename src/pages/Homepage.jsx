@@ -8,6 +8,7 @@ import SearchBar from "../components/homePage/SearchBar";
 import Testimonials from "../components/homePage/Testimonials";
 import { Intro } from "../components/homePage/Intro";
 import NavBar from "../components/NavBar";
+import { useAuth } from "../context/authContext";
 
 const HomePage = () => {
   return (

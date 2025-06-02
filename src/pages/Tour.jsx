@@ -8,10 +8,15 @@ import NavBar from "../components/NavBar";
 import { styles } from "../styles";
 import BookTrip from "../components/detailPage/BookTrip";
 import TripDetail from "../components/detailPage/TripDetail";
+import { useAuth } from "../context/authContext";
 
-const Detail = () => {
+const Tour = () => {
   const params = useParams();
+  const { user } = useAuth();
+  console.log(user);
   const [tour, setTour] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
+
   useEffect(() => {
     const tourId = params.id;
     const fetchTour = async () => {
@@ -22,7 +27,6 @@ const Detail = () => {
     };
     fetchTour();
   }, [params]);
-  console.log(tour.imageCover);
 
   return (
     <div className="flex flex-col">
@@ -73,7 +77,11 @@ const Detail = () => {
               </div>
             </div>
             <div className="pt-[24px]">
-              <TripDetail tour={tour} />
+              <TripDetail
+                tour={tour}
+                onDateSelect={setSelectedDate}
+                user={user}
+              />
             </div>
           </div>
           <div className="col-span-1 flex flex-col">
@@ -81,7 +89,7 @@ const Detail = () => {
               <span className="text-[20px] px-[32px] font-bold">
                 Book This Tour
               </span>
-              <BookTrip />
+              <BookTrip selectedDate={selectedDate} />
             </div>
           </div>
         </div>
@@ -91,4 +99,4 @@ const Detail = () => {
   );
 };
 
-export default Detail;
+export default Tour;

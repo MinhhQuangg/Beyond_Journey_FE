@@ -20,8 +20,10 @@ import {
   showToastError,
   showToastSuccess,
 } from "../components/common/ShowToast";
+import { useAuth } from "../context/authContext";
 
 export const Login = () => {
+  const { login } = useAuth();
   const formContext = useForm();
   const { register, handleSubmit, formState, watch } = formContext;
   const { errors } = formState;
@@ -32,14 +34,17 @@ export const Login = () => {
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
   const onSubmit = async (data) => {
-    setLoading(true); // Set loading to true
+    setLoading(true);
     try {
       const response = await axios.post(
         "http://localhost:3000/api/v1/users/login",
         data
       );
-      console.log(response);
-      showToastSuccess(response.data.status);
+      if (response.data.status === "success") {
+        await login(response.data.token);
+        showToastSuccess("Login successful");
+        navigate("/");
+      }
     } catch (err) {
       showToastError(err.response?.data?.message);
       console.log(err);

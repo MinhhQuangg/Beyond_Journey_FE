@@ -126,7 +126,6 @@ const Search = () => {
       Object.entries(queries).filter(([_, value]) => value)
     );
     const params = new URLSearchParams(filteredQuery);
-    console.log(params.toString());
     setSelectedDestination("Destination");
     setSelectedDifficulty("Difficulty");
     setCountAdult(0);

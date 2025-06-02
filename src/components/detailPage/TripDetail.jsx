@@ -1,9 +1,15 @@
 import "leaflet/dist/leaflet.css";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import StarIcon from "@mui/icons-material/Star";
 
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import axios from "axios";
 
 const sections = ["Overview", "Iternary", "Map", "Calendar", "Review"];
 const offers = [
@@ -18,12 +24,62 @@ const notOffers = [
   "No wine or alcohol allow",
 ];
 
-const TripDetail = ({ tour }) => {
-  console.log(tour);
+const TripDetail = ({ tour, onDateSelect, user }) => {
   const details = tour.description ? tour.description.split("\n\n") : [];
+  console.log(tour);
   const [open, setOpen] = useState(null);
   const [openAll, setOpenAll] = useState(false);
   const [section, setSection] = useState("Overview");
+  const [reviews, setReviews] = useState([]);
+  const [newReview, setNewReview] = useState("");
+
+  const events =
+    tour?.startDates?.flatMap((isoDate) => {
+      const start = new Date(isoDate);
+      const days = tour.duration || 1;
+
+      return Array.from({ length: days }).map((_, i) => {
+        const nextDate = new Date(start);
+        nextDate.setDate(start.getDate() + i);
+        return {
+          title: `Tour Day ${i + 1}`,
+          date: nextDate.toISOString().split("T")[0],
+          color: "#09D1C7",
+        };
+      });
+    }) || [];
+
+  useEffect(() => {
+    if (!tour?._id) return; // Prevents request if _id is undefined
+
+    const fetchReview = async () => {
+      try {
+        const response = await axios.get(
+          `http://127.0.0.1:3000/api/v1/tours/${tour._id}/reviews`
+        );
+        const reviews = response.data?.data?.reviews || [];
+        setReviews(reviews);
+      } catch (error) {
+        console.error("Failed to fetch reviews:", error);
+        setReviews([]);
+      }
+    };
+
+    fetchReview();
+  }, [tour?._id]);
+
+  //! Handle date select
+  const handleDateClick = (info) => {
+    onDateSelect(info.dateStr);
+  };
+
+  //! Handle review
+  const handleClick = () => {
+    if (!user) {
+      alert("Please login to leave a review");
+      return;
+    }
+  };
   return (
     <div>
       <div className="flex justify-between gap-2">
@@ -127,7 +183,7 @@ const TripDetail = ({ tour }) => {
         </div>
       )}
       {section == "Map" && (
-        <div className="pt-[24px]">
+        <div className="pt-[24px] relative z-0">
           <span className="text-[28px] font-bold">Map</span>
           {tour?.startLocation?.coordinates && (
             <div
@@ -135,7 +191,7 @@ const TripDetail = ({ tour }) => {
               style={{ wordSpacing: "0.2em" }}
             >
               <MapContainer
-                center={tour.startLocation.coordinates} // Use coordinates directly from tour
+                center={tour.startLocation.coordinates}
                 zoom={13}
                 scrollWheelZoom={false}
                 className="h-[600px]"
@@ -154,18 +210,87 @@ const TripDetail = ({ tour }) => {
           )}
         </div>
       )}
+      {section == "Calendar" && (
+        <div className="pt-[24px]">
+          <span className="text-[28px] font-bold">Calendar</span>
+          <div style={{ maxWidth: "900px", margin: "auto" }}>
+            <FullCalendar
+              plugins={[dayGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              events={events}
+              dateClick={handleDateClick}
+              selectable={true}
+              dayCellDidMount={(arg) => {
+                const today = new Date();
+                const cellDate = new Date(arg.date);
+
+                // Disable past dates by making them less opaque and non-clickable
+                if (cellDate < new Date(today.toDateString())) {
+                  arg.el.style.opacity = "0.6";
+                  arg.el.style.pointerEvents = "none";
+                } else {
+                  // Change cursor to pointer for selectable dates
+                  arg.el.style.cursor = "pointer";
+                }
+              }}
+            />
+          </div>
+        </div>
+      )}
       {section == "Review" && (
         <div className="pt-[24px]">
-          <span className="text-[28px] font-bold">Review</span>
+          <span className="text-[28px] font-bold">Reviews</span>
           <div
             className="text-[18px] py-[12px]"
             style={{ wordSpacing: "0.2em" }}
           >
-            {details.map((paragraph, index) => (
-              <p key={index} className="mb-4">
-                {paragraph}
-              </p>
+            <div className="flex flex-col bg-gray-200 rounded-2xl px-5 py-5 my-10">
+              <div className="flex items-center justify-center text-[40px] gap-4">
+                <StarIcon fontSize="large" className="text-yellow-500" />
+                <span>{tour.ratingsAverage} / 5</span>
+              </div>
+
+              <div className="text-center">
+                {tour.ratingsQuantity} verified reviews
+              </div>
+            </div>
+            {reviews.map((review, index) => (
+              <div key={index} className="flex gap-4 mb-4">
+                <div className="pt-[24px]">
+                  <AccountCircleIcon fontSize="large" />
+                </div>
+                <div className="bg-gray-200 rounded-2xl px-5 py-5">
+                  <div className="font-bold">{review.user.name}</div>
+                  <div className="text-[16px]">
+                    {new Date(review.createAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </div>
+                  <p className="mt-3 mb-4">{review.review}</p>
+                </div>
+              </div>
             ))}
+          </div>
+          <span className="text-[28px] font-bold">Leave your review</span>
+          <div className="mb-6">
+            <textarea
+              placeholder="Write your review here"
+              rows="5"
+              className="block w-full px-4 py-2 text-gray-900 border border-gray-300 rounded-lg text-base resize-none"
+              onChange={(e) => {
+                setNewReview(e.target.value);
+              }}
+            />
+          </div>
+          <div>
+            <button
+              className="bg-primary_4 hover:bg-primary_2 hover:text-white p-2 px-3 text-[18px] rounded-2xl"
+              onClick={handleClick}
+            >
+              Post a review
+            </button>
           </div>
         </div>
       )}
